@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Websockets Client</title>
+
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <form>
+      <!-- <input type="text" placeholder="Enter name" id="name" />
+      <input type="text" placeholder="Enter gcif" id="gcif" />
+      <button onclick="sendForm()">Send</button> -->
+      <ul id="scannerList"></ul>
+
+      <button onclick="getStatus()">GetScannerStatus</button>
+      <div id="status"></div>
+    </form>
+    <script>
+      let socket = io('http://localhost:3000/');
+      //   socket.chat = io('http://localhost:3000/chat');
+      socket.app = io('http://localhost:3000/app');
+
+      function sendForm() {
+        event.preventDefault();
+        const name = document.getElementById('name').value;
+        const gcif = document.getElementById('gcif').value;
+
+        const payload = {
+          name,
+          gcif,
+        };
+
+        socket.chat.emit('chatToServer', payload);
+        socket.chat.on('chatToClient', msg => {
+          console.log(msg);
+        });
+      }
+
+      async function getPosts() {
+        return await fetch('https://jsonplaceholder.typicode.com/posts/1')
+          .then(response => response.json())
+          .then(json => json);
+      }
+
+      //   function getStatus() {
+      //     event.preventDefault();
+      //     fetch('http://localhost:3000/scanner');
+
+      //     socket.app.on('getstatus', async msg => {
+      //       const res = await getPosts();
+      //       //console.log(res);
+      //       socket.app.emit('fromapp', res);
+      //     });
+      //   }
+
+      function getStatus() {
+        event.preventDefault();
+        socket.app.emit('getstatus');
+
+        socket.app.on('printstatus', msg => {
+          document.getElementById('status').innerHTML = msg;
+        });
+
+        let res = socket.app.on('printstatus', msg => msg);
+        console.log('====>', res);
+        socket.app.on('getstatus', async msg => {
+          const res = await getPosts();
+          //console.log(res);
+          socket.app.emit('fromapp', res);
+        });
+      }
+    </script>
+  </body>
+</html>
